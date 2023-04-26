@@ -87,18 +87,14 @@ def add_remote(c, command_line_key):
     :param command_line_key: List of keys to be added
     :return: None
     """
-    # checks if the known_keys.yaml file exists, if not, it creates it
-    if not pathlib.Path.is_file(pathlib.Path("~/.ssh/known_keys.yaml")):
-        setup_known_keys()
-        print("You have no keys, please run the 'generate' command first.")
-        # ask the user if he/she want to generate a key
-        if input("Would you like to generate a key? [Y/n]: ").replace(" ", "") in ("y", "Y", ""):
-            generate(c)
-        else:
-            print(":/")
-            exit(1)
-
-    ...
+    create_known_keys_yaml_if_not_exists(c)
+    yaml_file = open(YAML_KEYS_PATH)
+    # create dictionary form yaml file
+    yaml_keys: dict = yaml.load(yaml_file, Loader=SafeLoader)
+    # sets key 'keys' to None if no value is set
+    all_key_information = yaml_keys.setdefault('keys')
+    keys = [head_keys for head_keys in all_key_information if head_keys in command_line_key]
+    key_count = len(keys)
 
 
 # met irerable kan je meerdere cli keys in 1 regel meegeven
