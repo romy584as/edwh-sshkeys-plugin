@@ -9,6 +9,7 @@ import pprint
 import time
 import os
 
+YAML_KEYS_PATH = pathlib.Path("~/.ssh/known_keys.yaml")
 
 # met irerable kan je meerdere cli keys in 1 regel meegeven.
 @task(iterable=['command_line_key'])
@@ -60,7 +61,7 @@ def add_remote_old(c, command_line_key):
                 if len(split_key.split()) == 3:
                     generate_doel = split_key.split()[2]
                 # maak de key aan die nog NIET in de yaml file stond
-                if input(f"Wil je de {which_key} key aanmaken? [Yn]") in ("y", "Y", ""):
+                if input(f"Wil je de {which_key} key aanmaken? [Y/n]: ") in ("y", "Y", ""):
                     generate_message = str(input('Wat is het bericht dat je mee wilt geven? Deze MOET: '))
                     if generate_message == '':
                         print('Je moet een message invullen!')
@@ -79,11 +80,23 @@ def add_remote_old(c, command_line_key):
                     if count_keys == len(command_line_key):
                         add_remote_old(c, command_line_key)
 
+def create_known_keys_yaml_if_not_exists(c):
+    if not pathlib.Path.is_file(pathlib.Path(YAML_KEYS_PATH)):
+        setup_known_keys()
+        print(colored("You have no keys, please run the 'generate' command first.", "red"))
+        # ask the user if he/she want to generate a key
+        if input("Would you like to generate a key? [Y/n]: ").replace(" ", "") in ("y", "Y", ""):
+            generate(c)
+        else:
+            print(":/")
+            exit(1)
+
+
 @task(iterable=['command_line_key'])
 def add_remote(c, command_line_key):
     """
     It adds the specified SSH key(s) to the remote machine.
-    
+    :param c: run commands.
     :param command_line_key: List of keys to be added
     :return: None
     """
